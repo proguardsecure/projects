@@ -1,0 +1,27 @@
+
+## Project Files
+
+### projects/threat_detection/threat_indicators.json
+```json
+{
+  "project_name": "Advanced Threat Detection System",
+  "version": "2.1.3",
+  "last_updated": "2025-08-10",
+  "threat_signatures": {
+    "malware_families": [
+      {
+        "name": "Zeus Banking Trojan",
+        "hash": "a1b2c3d4e5f6789012345678901234567890abcd",
+        "severity": "High",
+        "discovered_by": "l.zhang@secureguardpro.com"
+      },
+      {
+        "name": "Emotet Variant",
+        "hash": "9876543210fedcba0987654321fedcba09876543",
+        "severity": "Critical",
+        "discovered_by": "s.thompson@secureguardpro.com"
+      }
+    ]
+  }
+}
+```
