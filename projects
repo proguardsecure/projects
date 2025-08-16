@@ -1,0 +1,210 @@
+## Detailed Project Files
+
+### projects/threat_detection/advanced_malware_detection.py
+```python
+#!/usr/bin/env python3
+"""
+Advanced Malware Detection System
+SecureGuardPro - Threat Detection Division
+Author: Lisa Zhang (l.zhang@secureguardpro.com)
+Last Modified: 2025-08-10
+Classification: Internal Use
+"""
+
+import hashlib
+import json
+import requests
+from datetime import datetime
+import logging
+
+class MalwareDetector:
+    def __init__(self, api_key="sandbox_key_12345"):
+        self.api_key = api_key
+        self.known_signatures = []
+        self.logger = self._setup_logging()
+        
+    def _setup_logging(self):
+        logging.basicConfig(
+            filename='malware_detection.log',
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s'
+        )
+        return logging.getLogger(__name__)
+    
+    def calculate_file_hash(self, file_path):
+        """Calculate SHA-256 hash of file"""
+        sha256_hash = hashlib.sha256()
+        try:
+            with open(file_path, "rb") as f:
+                for chunk in iter(lambda: f.read(4096), b""):
+                    sha256_hash.update(chunk)
+            return sha256_hash.hexdigest()
+        except Exception as e:
+            self.logger.error(f"Error calculating hash: {e}")
+            return None
+    
+    def check_threat_intelligence(self, file_hash):
+        """Check hash against threat intelligence feeds"""
+        # Note: This is a development/testing function
+        # Production version uses actual threat intelligence APIs
+        
+        threat_feeds = [
+            "https://api.example-threat-intel.com/check",
+            "https://api.virustotal.com/vtapi/v2/file/report"
+        ]
+        
+        results = {
+            "hash": file_hash,
+            "threat_detected": False,
+            "confidence_score": 0,
+            "analysis_date": datetime.now().isoformat()
+        }
+        
+        # Simulated threat intelligence check
+        # In production, this would query real APIs
+        
+        self.logger.info(f"Checked hash {file_hash[:16]}... against TI feeds")
+        return results
+
+# Configuration for threat detection rules
+DETECTION_RULES = {
+    "file_size_anomaly": {"min_size": 100, "max_size": 50000000},
+    "suspicious_extensions": [".scr", ".pif", ".vbs", ".bat"],
+    "entropy_threshold": 7.5,
+    "yara_rules_path": "/opt/secureguard/rules/"
+}
+```
+
+### projects/incident_response/automated_containment.sh
+#!/bin/bash
+# Automated Incident Response - Containment Script
+# SecureGuardPro SOC
+# Author: James Wilson (j.wilson@secureguardpro.com)
+# Classification: Restricted
+# Last Modified: 2025-08-08
+
+LOG_FILE="/var/log/secureguard/incident_response.log"
+QUARANTINE_DIR="/quarantine/"
+INCIDENT_ID=$1
+
+# Function to log activities
+log_action() {
+    echo "[$(date)] - INCIDENT_${INCIDENT_ID} - $1" >> $LOG_FILE
+}
+
+# Isolate compromised host
+isolate_host() {
+    local HOST_IP=$1
+    log_action "Initiating host isolation for $HOST_IP"
+    
+    # Block network access (example - would use actual firewall commands)
+    echo "iptables -A INPUT -s $HOST_IP -j DROP" 
+    echo "iptables -A OUTPUT -d $HOST_IP -j DROP"
+    
+    log_action "Host $HOST_IP isolated from network"
+}
+
+# Preserve forensic evidence
+preserve_evidence() {
+    local HOST_IP=$1
+    local TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+    
+    log_action "Starting evidence preservation for $HOST_IP"
+    
+    # Create forensic image (example command)
+    echo "dd if=/dev/sda of=${QUARANTINE_DIR}/forensic_${HOST_IP}_${TIMESTAMP}.img bs=1M"
+    
+    log_action "Forensic image created: forensic_${HOST_IP}_${TIMESTAMP}.img"
+}
+
+# Main containment workflow
+main() {
+    if [ -z "$INCIDENT_ID" ]; then
+        echo "Usage: $0 <INCIDENT_ID>"
+        exit 1
+    fi
+    
+    log_action "Starting automated containment procedures"
+    
+    # Example: Isolate specific compromised hosts
+    COMPROMISED_HOSTS=("192.168.1.100" "192.168.1.157")
+    
+    for HOST in "${COMPROMISED_HOSTS[@]}"; do
+        isolate_host $HOST
+        preserve_evidence $HOST
+    done
+    
+    log_action "Automated containment procedures completed"
+}
+
+main "$@"
+```
+
+### projects/penetration_testing/network_reconnaissance.py
+"""
+Network Reconnaissance Tool
+SecureGuardPro Red Team
+Author: David Kim (d.kim@secureguardpro.com)
+Classification: Restricted - Red Team Use Only
+"""
+
+import socket
+import subprocess
+import threading
+from concurrent.futures import ThreadPoolExecutor
+import argparse
+
+class NetworkScanner:
+    def __init__(self, target_network):
+        self.target_network = target_network
+        self.open_ports = []
+        self.alive_hosts = []
+        
+    def ping_host(self, ip):
+        """Check if host is alive"""
+        try:
+            # Using ping command (cross-platform)
+            result = subprocess.run(
+                ['ping', '-c', '1', '-W', '1000', ip],
+                capture_output=True,
+                text=True,
+                timeout=2
+            )
+            if result.returncode == 0:
+                self.alive_hosts.append(ip)
+                print(f"[+] Host {ip} is alive")
+        except:
+            pass
+    
+    def port_scan(self, ip, port):
+        """Scan specific port on target"""
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)
+            result = sock.connect_ex((ip, port))
+            sock.close()
+            
+            if result == 0:
+                service = self.identify_service(port)
+                self.open_ports.append(f"{ip}:{port} ({service})")
+                print(f"[+] {ip}:{port} - {service} - OPEN")
+        except:
+            pass
+    
+    def identify_service(self, port):
+        """Identify common services by port"""
+        services = {
+            22: "SSH", 23: "Telnet", 25: "SMTP", 53: "DNS",
+            80: "HTTP", 110: "POP3", 143: "IMAP", 443: "HTTPS",
+            993: "IMAPS", 995: "POP3S", 1433: "MSSQL", 3389: "RDP"
+        }
+        return services.get(port, "Unknown")
+
+# Example usage and configuration
+COMMON_PORTS = [21, 22, 23, 25, 53, 80, 110, 135, 139, 143, 443, 445, 993, 995, 1723, 3306, 3389, 5900, 8080]
+
+# Note: This tool is for authorized penetration testing only
+# All usage must be pre-approved and documented
+```
+
+---
